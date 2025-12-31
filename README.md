@@ -1,4 +1,10 @@
 # Java Projects Showcase
+
+<p align="center">
+  <img src="sources/img/main_header.png" alt="Logo" width="300">
+</p>
+
+
 ### Portafolio profesional de proyectos Java
 
 Collection of Java projects 
