@@ -23,6 +23,7 @@ Collection of Java projects
 ![Java CI](https://github.com/JoseLuisElizalde/java-projects-showcase/actions/workflows/ci.yml/badge.svg) ![Coverage](https://img.shields.io/badge/coverage-85%25-green) ![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen)
 
 ####  **Tabla de Contenidos**
+
 - [ Características](#características)
 - [ Proyectos](#proyectos)
 - [ Cómo Empezar](#cómo-empezar)
@@ -37,23 +38,36 @@ Collection of Java projects
 
 ###  **Proyectos**
 
-####  **Nivel Avanzado**
+
+<details>
+<summary><strong>🟢 Nivel Avanzado</strong></summary>
+
 | Proyecto | Descripción | Tecnologías | Estado |
 |----------|-------------|-------------|--------|
 | [Sistema E-Commerce](proyectos/ecommerce) | API RESTful completa con microservicios | Spring Boot, Docker, PostgreSQL | ✅ Completo |
 | [App de Tareas](proyectos/task-manager) | Gestor de tareas con WebSocket | Java 17, Spring, WebSocket | 🔄 En progreso |
 
-####  **Nivel Intermedio**
+</details>
+
+<details>
+<summary><strong>🟡 Nivel Intermedio</strong></summary>
+
 | Proyecto | Descripción | Tecnologías | Estado |
 |----------|-------------|-------------|--------|
 | [API REST](proyectos/api-rest) | API CRUD para gestión de usuarios | Spring Boot, JPA, H2 | ✅ Completo |
 | [Calculadora](proyectos/calculator) | Calculadora con interfaz gráfica | Java Swing, Maven | ✅ Completo |
 
-####  **Nivel Básico**
+</details>
+
+<details>
+<summary><strong>🔵 Nivel Básico</strong></summary>
+
 | Proyecto | Descripción | Tecnologías |
 |----------|-------------|-------------|
 | [Hola Mundo](proyectos/hello-world) | Primer programa en Java | Java 11 |
 | [Conversor](proyectos/converter) | Conversor de unidades básico | Java, JUnit |
+
+</details>
 
 
 
