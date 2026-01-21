@@ -44,8 +44,6 @@ Collection of Java projects
 
 | Proyecto | Descripción | Tecnologías | Estado |
 |----------|-------------|-------------|--------|
-| [Sistema E-Commerce](proyectos/nivel-avanzado/ecommerce) | API RESTful completa con microservicios | Spring Boot, Docker, PostgreSQL | 🔄 En progreso |
-| [App de Tareas](proyectos/nivel-avanzado/task-manager) | Gestor de tareas con WebSocket | Java 17, Spring, WebSocket | 🔄 En progreso |
 
 </details>
 
@@ -54,9 +52,6 @@ Collection of Java projects
 
 | Proyecto | Descripción | Tecnologías | Estado |
 |----------|-------------|-------------|--------|
-| [API REST](proyectos/nivel-intermedio/api-rest) | API CRUD para gestión de usuarios | Spring Boot, JPA, H2 | 🔄 En progreso |
-| [Calculadora](proyectos/nivel-intermedio/calculator) | Calculadora con interfaz gráfica | Java Swing, Maven | 🔄 En progreso |
-
 
 </details>
 
@@ -65,10 +60,11 @@ Collection of Java projects
 
 | Proyecto | Descripción | Tecnologías |
 |----------|-------------|-------------|
-| [Hola Mundo](proyectos/hello-world) | Primer programa en Java | Java 11 |
-| [Conversor](proyectos/converter) | Conversor de unidades básico | Java, JUnit |
+| [Hello World](proyectos/nivel-basico/1.hello-world) | Primer programa en Java | Java 17, Maven |
+| [Converter](proyectos/nivel-basico/2.converter) | Conversor de unidades básico | Java 17, Maven |
 
 </details>
+
 
 
 

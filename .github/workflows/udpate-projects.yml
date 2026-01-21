@@ -1,0 +1,83 @@
+name: Update Projects List
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'proyectos/**'
+      - '!proyectos/**/target/**'
+      - '!proyectos/**/.idea/**'
+      - '!proyectos/**/.mvn/**'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'proyectos/**'
+  workflow_dispatch:  # Permite ejecución manual
+  schedule:
+    - cron: '0 12 * * 1'  # Ejecutar cada lunes a las 12:00 UTC
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Update README
+      id: update
+      run: |
+        python .github/scripts/update-readme.py
+        echo "updated=$(git status --porcelain README.md | wc -l)" >> $GITHUB_OUTPUT
+
+    - name: Commit and push changes (on push)
+      if: steps.update.outputs.updated > 0 && github.event_name == 'push'
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add README.md
+        git commit -m "📚 Actualizar lista de proyectos automáticamente"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Pull Request (on schedule or manual)
+      if: steps.update.outputs.updated > 0 && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "📚 Actualizar lista de proyectos automáticamente"
+        title: "Actualización automática de proyectos"
+        body: |
+          ## 📊 Actualización automática de proyectos
+          
+          Este PR actualiza automáticamente la lista de proyectos en el README.md basado en la estructura actual de directorios.
+          
+          ### Cambios realizados:
+          - Lista de proyectos actualizada según la estructura de directorios
+          - Se mantuvo el formato original con detalles desplegables
+          - Estados actualizados automáticamente
+          
+          ### 📈 Proyectos detectados:
+          El script encontró y actualizó las tablas de proyectos.
+          
+          ---
+          
+          *Esta actualización fue generada automáticamente por GitHub Actions.*
+        branch: update/projects-list
+        delete-branch: true
+
+    - name: No changes
+      if: steps.update.outputs.updated == 0
+      run: echo "✅ No hay cambios en el README.md"
