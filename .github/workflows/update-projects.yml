@@ -72,7 +72,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # 2. Crear PR automático desde main/schedule hacia develop
-    - name: Create Pull Request to develop (from main or schedule)
+    - name: Create Pull Request to develop
       id: create-pr
       if: steps.update.outputs.updated > 0 && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
       uses: peter-evans/create-pull-request@v6
@@ -91,44 +91,85 @@ jobs:
           ---
           
           *Esta actualización fue generada automáticamente por GitHub Actions.*
-          *PR será mergeado automáticamente en 1 minuto.*
+          *PR será mergeado y la rama eliminada automáticamente.*
         branch: auto-update/readme-${{ github.sha }}
-        delete-branch: true
+        delete-branch: true  # IMPORTANTE: Esto elimina la rama después del merge
         add-paths: README.md
         labels: automated,documentation,auto-merge
         base: develop
         draft: false
 
-    # 3. Auto-merge del PR creado (espera 1 minuto y luego mergea)
-    - name: Auto-merge PR to develop
-      if: steps.create-pr.outputs.pull-request-number != '' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+    # 3. Auto-merge del PR creado y eliminar rama
+    - name: Auto-merge PR and cleanup
+      if: steps.create-pr.outputs.pull-request-number != '' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event_name == 'push')
       uses: actions/github-script@v6
       with:
         script: |
-          // Esperar 60 segundos para dar tiempo a revisión (opcional)
-          await new Promise(resolve => setTimeout(resolve, 60000));
-          
           const prNumber = ${{ steps.create-pr.outputs.pull-request-number }};
           const [owner, repo] = context.payload.repository.full_name.split('/');
           
+          console.log(`🔄 Procesando PR #${prNumber}...`);
+          
           try {
-            // Mergear el PR automáticamente
-            await github.rest.pulls.merge({
+            // 1. Primero mergear el PR
+            console.log(`📤 Mergeando PR #${prNumber} a develop...`);
+            const mergeResult = await github.rest.pulls.merge({
               owner: owner,
               repo: repo,
               pull_number: prNumber,
-              merge_method: 'squash',  // o 'merge', 'rebase'
+              merge_method: 'squash',
               commit_title: '📚 Actualizar lista de proyectos automáticamente',
               commit_message: 'Merge automático de actualización de README'
             });
             
-            console.log(`✅ PR #${prNumber} mergeado automáticamente en develop`);
+            console.log(`✅ PR #${prNumber} mergeado exitosamente`);
             
-            // La rama se elimina automáticamente por create-pull-request con delete-branch: true
+            // 2. La rama se elimina automáticamente por create-pull-request
+            // Pero verificamos por si acaso
+            try {
+              const prData = await github.rest.pulls.get({
+                owner: owner,
+                repo: repo,
+                pull_number: prNumber
+              });
+              
+              const branchName = prData.data.head.ref;
+              console.log(`🗑️ La rama '${branchName}' será eliminada automáticamente por delete-branch: true`);
+              
+            } catch (error) {
+              console.log(`ℹ️ No se pudo obtener info de la rama: ${error.message}`);
+            }
             
           } catch (error) {
-            console.log(`⚠️ No se pudo mergear automáticamente: ${error.message}`);
-            console.log('El PR queda pendiente de revisión manual.');
+            console.log(`❌ Error al mergear PR #${prNumber}: ${error.message}`);
+            
+            // Si falla el merge, intentamos eliminar la rama manualmente
+            if (error.message.includes('merge') || error.status === 405) {
+              console.log('🔄 Intentando eliminar la rama manualmente...');
+              
+              try {
+                // Obtener nombre de la rama del PR
+                const prData = await github.rest.pulls.get({
+                  owner: owner,
+                  repo: repo,
+                  pull_number: prNumber
+                });
+                
+                const branchName = prData.data.head.ref;
+                
+                // Eliminar la rama
+                await github.rest.git.deleteRef({
+                  owner: owner,
+                  repo: repo,
+                  ref: `heads/${branchName}`
+                });
+                
+                console.log(`✅ Rama '${branchName}' eliminada manualmente`);
+                
+              } catch (deleteError) {
+                console.log(`⚠️ No se pudo eliminar la rama: ${deleteError.message}`);
+              }
+            }
           }
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -155,7 +196,7 @@ jobs:
           *Generado automáticamente desde el flujo de integración.*
           *Este PR requiere revisión manual antes de mergear a main.*
         branch: update/readme-to-main-${{ github.sha }}
-        delete-branch: true
+        delete-branch: true  # También elimina esta rama después de merge
         add-paths: README.md
         labels: documentation,release,needs-review
         base: main
