@@ -39,13 +39,6 @@ Collection of Java projects
 ###  **Proyectos**
 
 
-
-
-
-
-
-
-
 <details>
 <summary><strong>🟢 Nivel Avanzado</strong></summary>
 
@@ -73,9 +66,12 @@ Collection of Java projects
 </details>
 
 # Navegar a un proyecto específico
+```text
 cd proyectos/api-rest
+```
 
 # Compilar y ejecutar
+```bash
 mvn clean install
 mvn spring-boot:run
 ```
