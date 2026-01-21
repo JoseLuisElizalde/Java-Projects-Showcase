@@ -31,7 +31,7 @@ jobs:
       with:
         fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
-        ref: ${{ github.head_ref || github.ref }}  # Usar la rama correcta
+        ref: ${{ github.head_ref || github.ref }}
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -59,6 +59,7 @@ jobs:
         echo "🏷️ Head ref: ${{ github.head_ref }}"
         echo "📦 updated output: ${{ steps.update.outputs.updated }}"
 
+    # 1. Push directo a develop (si ya estamos en develop)
     - name: Commit and push changes (direct push to develop)
       if: steps.update.outputs.updated > 0 && github.event_name == 'push' && github.ref == 'refs/heads/develop'
       run: |
@@ -70,7 +71,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    # 2. Crear PR automático desde main/schedule hacia develop
     - name: Create Pull Request to develop (from main or schedule)
+      id: create-pr
       if: steps.update.outputs.updated > 0 && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
       uses: peter-evans/create-pull-request@v6
       with:
@@ -85,29 +88,54 @@ jobs:
           ### 📈 Proyectos detectados:
           El script encontró y actualizó las tablas de proyectos.
           
-          ### 🚀 Acciones:
-          - Revisar los cambios en el README.md
-          - Aprobar y mergear si todo está correcto
-          
           ---
           
           *Esta actualización fue generada automáticamente por GitHub Actions.*
-        branch: update/projects-list-${{ github.sha }}
+          *PR será mergeado automáticamente en 1 minuto.*
+        branch: auto-update/readme-${{ github.sha }}
         delete-branch: true
         add-paths: README.md
-        labels: automated,documentation,ci-cd
-        base: develop  # Siempre apuntar a develop como base
+        labels: automated,documentation,auto-merge
+        base: develop
         draft: false
 
-    - name: No changes
-      if: steps.update.outputs.updated == 0
-      run: |
-        echo "✅ No hay cambios en el README.md"
-        echo "Rama: ${{ github.ref }}"
-        echo "Evento: ${{ github.event_name }}"
+    # 3. Auto-merge del PR creado (espera 1 minuto y luego mergea)
+    - name: Auto-merge PR to develop
+      if: steps.create-pr.outputs.pull-request-number != '' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+      uses: actions/github-script@v6
+      with:
+        script: |
+          // Esperar 60 segundos para dar tiempo a revisión (opcional)
+          await new Promise(resolve => setTimeout(resolve, 60000));
+          
+          const prNumber = ${{ steps.create-pr.outputs.pull-request-number }};
+          const [owner, repo] = context.payload.repository.full_name.split('/');
+          
+          try {
+            // Mergear el PR automáticamente
+            await github.rest.pulls.merge({
+              owner: owner,
+              repo: repo,
+              pull_number: prNumber,
+              merge_method: 'squash',  // o 'merge', 'rebase'
+              commit_title: '📚 Actualizar lista de proyectos automáticamente',
+              commit_message: 'Merge automático de actualización de README'
+            });
+            
+            console.log(`✅ PR #${prNumber} mergeado automáticamente en develop`);
+            
+            // La rama se elimina automáticamente por create-pull-request con delete-branch: true
+            
+          } catch (error) {
+            console.log(`⚠️ No se pudo mergear automáticamente: ${error.message}`);
+            console.log('El PR queda pendiente de revisión manual.');
+          }
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create Pull Request to main (from develop with changes)
-      if: steps.update.outputs.updated > 0 && github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.base_ref == 'refs/heads/main'
+    # 4. Crear PR desde develop a main (solo cuando se hace push a develop)
+    - name: Create Pull Request to main (from develop)
+      if: steps.update.outputs.updated > 0 && github.event_name == 'push' && github.ref == 'refs/heads/develop'
+      id: pr-to-main
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -125,9 +153,17 @@ jobs:
           ---
           
           *Generado automáticamente desde el flujo de integración.*
+          *Este PR requiere revisión manual antes de mergear a main.*
         branch: update/readme-to-main-${{ github.sha }}
         delete-branch: true
         add-paths: README.md
-        labels: documentation,release
-        base: main  # Apuntar a main
+        labels: documentation,release,needs-review
+        base: main
         draft: false
+
+    - name: No changes
+      if: steps.update.outputs.updated == 0
+      run: |
+        echo "✅ No hay cambios en el README.md"
+        echo "Rama: ${{ github.ref }}"
+        echo "Evento: ${{ github.event_name }}"
