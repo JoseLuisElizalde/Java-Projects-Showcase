@@ -39,6 +39,13 @@ Collection of Java projects
 ###  **Proyectos**
 
 
+
+
+
+
+
+
+
 <details>
 <summary><strong>🟢 Nivel Avanzado</strong></summary>
 
@@ -64,14 +71,6 @@ Collection of Java projects
 | [Converter](proyectos/nivel-basico/2.converter) | Conversor de unidades básico | Java 17, Maven |
 
 </details>
-
-
-
-
-###  **Cómo Empezar**
-```bash
-# Clonar el repositorio
-git clone https://github.com/JoseLuisElizalde/Java-Projects-Showcase
 
 # Navegar a un proyecto específico
 cd proyectos/api-rest
