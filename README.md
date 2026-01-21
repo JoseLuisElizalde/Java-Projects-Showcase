@@ -62,7 +62,7 @@ Collection of Java projects
 |----------|-------------|-------------|
 | [Hello World](proyectos/nivel-basico/1.hello-world) | Primer programa en Java | Java 17, Maven |
 | [Converter](proyectos/nivel-basico/2.converter) | Conversor de unidades básico | Java 17, Maven |
-| [Currency Converter](proyectos/nivel-basico/3.currency-converter) | Conversor de unidades | Java 17, Maven |
+
 
 </details>
 
