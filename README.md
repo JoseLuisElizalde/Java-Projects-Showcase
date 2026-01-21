@@ -40,20 +40,20 @@ Collection of Java projects
 ####  **Nivel Avanzado**
 | Proyecto | Descripción | Tecnologías | Estado |
 |----------|-------------|-------------|--------|
-| [Sistema E-Commerce](proyectos/ecommerce) | API RESTful completa con microservicios | Spring Boot, Docker, PostgreSQL | ✅ Completo |
-| [App de Tareas](proyectos/task-manager) | Gestor de tareas con WebSocket | Java 17, Spring, WebSocket | 🔄 En progreso |
+| [Sistema E-Commerce](proyectos/nivel-avanzado/ecommerce) | API RESTful completa con microservicios | Spring Boot, Docker, PostgreSQL | 🔄 En progreso |
+| [App de Tareas](proyectos/nivel-avanzado/task-manager) | Gestor de tareas con WebSocket | Java 17, Spring, WebSocket | 🔄 En progreso |
 
 ####  **Nivel Intermedio**
 | Proyecto | Descripción | Tecnologías | Estado |
 |----------|-------------|-------------|--------|
-| [API REST](proyectos/api-rest) | API CRUD para gestión de usuarios | Spring Boot, JPA, H2 | ✅ Completo |
-| [Calculadora](proyectos/calculator) | Calculadora con interfaz gráfica | Java Swing, Maven | ✅ Completo |
+| [API REST](proyectos/nivel-intermedio/api-rest) | API CRUD para gestión de usuarios | Spring Boot, JPA, H2 | 🔄 En progreso |
+| [Calculadora](proyectos/nivel-intermedio/calculator) | Calculadora con interfaz gráfica | Java Swing, Maven | 🔄 En progreso |
 
 ####  **Nivel Básico**
-| Proyecto | Descripción | Tecnologías |
-|----------|-------------|-------------|
-| [Hola Mundo](proyectos/hello-world) | Primer programa en Java | Java 11 |
-| [Conversor](proyectos/converter) | Conversor de unidades básico | Java, JUnit |
+| Proyecto | Descripción | Tecnologías | Estado |
+|----------|-------------|-------------|--------|
+| [Hola Mundo](proyectos/nivel-basico/hello-world) | Primer programa en Java | Java 11 | ✅ Completo |
+| [Conversor](proyectos/nivel-basico/converter) | Conversor de unidades básico | Java, JUnit | ✅ Completo |
 
 
 
