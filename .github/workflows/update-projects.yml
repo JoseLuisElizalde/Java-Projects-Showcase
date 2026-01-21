@@ -2,14 +2,14 @@ name: Update Projects List
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'proyectos/**'
       - '!proyectos/**/target/**'
       - '!proyectos/**/.idea/**'
       - '!proyectos/**/.mvn/**'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, develop ]
     paths:
       - 'proyectos/**'
   workflow_dispatch:  # Permite ejecución manual
@@ -23,12 +23,15 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        ref: ${{ github.head_ref || github.ref }}  # Usar la rama correcta
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -41,8 +44,23 @@ jobs:
         python .github/scripts/update-readme.py
         echo "updated=$(git status --porcelain README.md | wc -l)" >> $GITHUB_OUTPUT
 
-    - name: Commit and push changes (on push)
-      if: steps.update.outputs.updated > 0 && github.event_name == 'push'
+    - name: Debug - Show git status
+      if: steps.update.outputs.updated > 0
+      run: |
+        echo "📊 Estado del repositorio:"
+        git status
+        echo ""
+        echo "📝 Cambios en README.md:"
+        git diff README.md --stat || true
+        echo ""
+        echo "📅 Evento: ${{ github.event_name }}"
+        echo "🏷️ Rama actual: ${{ github.ref }}"
+        echo "🏷️ Base ref: ${{ github.base_ref }}"
+        echo "🏷️ Head ref: ${{ github.head_ref }}"
+        echo "📦 updated output: ${{ steps.update.outputs.updated }}"
+
+    - name: Commit and push changes (direct push to develop)
+      if: steps.update.outputs.updated > 0 && github.event_name == 'push' && github.ref == 'refs/heads/develop'
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
@@ -52,32 +70,64 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create Pull Request (on schedule or manual)
-      if: steps.update.outputs.updated > 0 && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
-      uses: peter-evans/create-pull-request@v5
+    - name: Create Pull Request to develop (from main or schedule)
+      if: steps.update.outputs.updated > 0 && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+      uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: "📚 Actualizar lista de proyectos automáticamente"
-        title: "Actualización automática de proyectos"
+        title: "📊 Actualización automática de proyectos"
         body: |
           ## 📊 Actualización automática de proyectos
           
           Este PR actualiza automáticamente la lista de proyectos en el README.md basado en la estructura actual de directorios.
           
-          ### Cambios realizados:
-          - Lista de proyectos actualizada según la estructura de directorios
-          - Se mantuvo el formato original con detalles desplegables
-          - Estados actualizados automáticamente
-          
           ### 📈 Proyectos detectados:
           El script encontró y actualizó las tablas de proyectos.
+          
+          ### 🚀 Acciones:
+          - Revisar los cambios en el README.md
+          - Aprobar y mergear si todo está correcto
           
           ---
           
           *Esta actualización fue generada automáticamente por GitHub Actions.*
-        branch: update/projects-list
+        branch: update/projects-list-${{ github.sha }}
         delete-branch: true
+        add-paths: README.md
+        labels: automated,documentation,ci-cd
+        base: develop  # Siempre apuntar a develop como base
+        draft: false
 
     - name: No changes
       if: steps.update.outputs.updated == 0
-      run: echo "✅ No hay cambios en el README.md"
+      run: |
+        echo "✅ No hay cambios en el README.md"
+        echo "Rama: ${{ github.ref }}"
+        echo "Evento: ${{ github.event_name }}"
+
+    - name: Create Pull Request to main (from develop with changes)
+      if: steps.update.outputs.updated > 0 && github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.base_ref == 'refs/heads/main'
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "📚 Actualizar README con nuevos proyectos"
+        title: "📈 Actualizar README desde develop"
+        body: |
+          ## 📊 Actualización de README desde develop
+          
+          Esta actualización incluye los cambios del README.md desde la rama develop.
+          
+          ### 📋 Contenido:
+          - Lista de proyectos actualizada
+          - Conteo de proyectos por nivel
+          
+          ---
+          
+          *Generado automáticamente desde el flujo de integración.*
+        branch: update/readme-to-main-${{ github.sha }}
+        delete-branch: true
+        add-paths: README.md
+        labels: documentation,release
+        base: main  # Apuntar a main
+        draft: false
